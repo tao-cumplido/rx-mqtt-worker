@@ -1,0 +1,54 @@
+{
+    "extends": ["tslint:latest", "tslint-config-prettier"],
+    "rules": {
+        "curly": [true, "ignore-same-line"],
+        "deprecation": {
+            "severity": "warn"
+        },
+        "import-blacklist": [true, "rxjs/Rx"],
+        "interface-name": [true, "never-prefix"],
+        "member-access": false,
+        "member-ordering": [
+            true,
+            {
+                "order": [
+                    "static-field",
+                    "static-method",
+                    "instance-field",
+                    "instance-method"
+                ]
+            }
+        ],
+        "no-bitwise": false,
+        "no-empty": false,
+        "no-implicit-dependencies": false,
+        "no-inferrable-types": [true, "ignore-params"],
+        "no-non-null-assertion": false,
+        "no-redundant-jsdoc": true,
+        "no-string-literal": false,
+        "no-submodule-imports": [
+            true,
+            "rxjs",
+            "@angular/platform-browser",
+            "@angular/core/testing",
+            "@angular/router/testing",
+            "@angular/platform-browser-dynamic/testing",
+            "core-js",
+            "zone.js"
+        ],
+
+        "no-switch-case-fall-through": true,
+        "no-this-assignment": [true, "allow-destructuring"],
+        "no-unused-expression": [true, "allow-fast-null-checks"],
+        "object-literal-sort-keys": false,
+        "ordered-imports": [
+            true,
+            {
+                "named-imports-order": "lowercase-first"
+            }
+        ],
+        "prefer-object-spread": true,
+        "radix": false,
+        "variable-name": false
+    }
+}
