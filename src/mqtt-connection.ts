@@ -18,7 +18,7 @@ export interface ObserveOptions {
 declare var SharedWorker: SharedWorkerConstructor;
 
 export class MqttConnection {
-    static workerPath = 'mqtt-worker.js';
+    static workerPath = 'mqtt-worker.min.js';
 
     private connectionWorker: WindowConnectionWorker;
 
