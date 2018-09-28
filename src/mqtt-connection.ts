@@ -8,7 +8,7 @@ import {
     WindowSubscriptionWorker,
 } from 'mqtt-worker';
 import { Observable, Subject } from 'rxjs';
-import { share, shareReplay } from 'rxjs/operators';
+import { publish, publishReplay, refCount } from 'rxjs/operators';
 
 export interface ObserveOptions {
     qos?: QoS;
@@ -118,7 +118,10 @@ export class MqttConnection {
                 });
                 subscriptionWorker.port.close();
             };
-        }).pipe(retain ? shareReplay(1) : share());
+        }).pipe(
+            retain ? publishReplay(1) : publish(),
+            refCount()
+        );
     }
 
     publish(

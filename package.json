@@ -18,7 +18,7 @@
         "husky": "^1.0.0-rc.15",
         "lint-staged": "^7.3.0",
         "mqtt": "^2.18.8",
-        "mqtt-worker": "0.0.7",
+        "mqtt-worker": "0.0.8",
         "prettier": "^1.14.3",
         "rxjs": "^6.3.2",
         "tslint": "^5.11.0",
@@ -27,6 +27,6 @@
     },
     "peerDependencies": {
         "rxjs": "^6.0.0",
-        "mqtt-worker": "0.0.7"
+        "mqtt-worker": "0.0.8"
     }
 }
