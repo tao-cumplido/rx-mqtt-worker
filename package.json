@@ -1,6 +1,6 @@
 {
     "name": "rx-mqtt-worker",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "Observable connections for mqtt-worker.",
     "files": [
         "dist/*"
