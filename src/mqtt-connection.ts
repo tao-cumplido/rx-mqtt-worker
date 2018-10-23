@@ -3,9 +3,9 @@ import {
     MqttPayloadMessage,
     RequestError,
     SharedWorkerConstructor,
-    WindowConnectionEvent,
     WindowConnectionWorker,
-    WindowSubscriptionWorker,
+    WindowStateEvent,
+    WindowSubscriptionEvent,
 } from 'mqtt-worker';
 import { Observable, Subject } from 'rxjs';
 import { publish, publishReplay, refCount } from 'rxjs/operators';
@@ -20,7 +20,7 @@ declare var SharedWorker: SharedWorkerConstructor;
 export class MqttConnection {
     static workerPath = 'mqtt-worker.min.js';
 
-    private connectionWorker: WindowConnectionWorker;
+    private worker: WindowConnectionWorker;
 
     private event = {
         error$: new Subject<RequestError>(),
@@ -46,14 +46,12 @@ export class MqttConnection {
     }
 
     constructor(private name: string, url: string, options?: IClientOptions) {
-        this.connectionWorker = new SharedWorker(MqttConnection.workerPath);
+        this.worker = new SharedWorker(MqttConnection.workerPath);
 
-        this.connectionWorker.port.onmessage = ({
-            data,
-        }: WindowConnectionEvent) => {
+        this.worker.port.addEventListener('message', ({ data }) => {
             switch (data.type) {
                 case 'ping':
-                    return this.connectionWorker.port.postMessage(data);
+                    return this.worker.port.postMessage(data);
                 case 'error':
                     return this.event.error$.next(data.error);
                 case 'mqtt-connect':
@@ -63,9 +61,9 @@ export class MqttConnection {
                 case 'mqtt-offline':
                     return this.event.offline$.next();
             }
-        };
+        });
 
-        this.connectionWorker.port.postMessage({
+        this.worker.port.postMessage({
             type: 'connect',
             name,
             url,
@@ -87,22 +85,23 @@ export class MqttConnection {
 
         return new Observable<MqttPayloadMessage>((observer) => {
             const subscription = source$.subscribe(observer);
-            const subscriptionWorker: WindowSubscriptionWorker = new SharedWorker(
-                MqttConnection.workerPath
-            );
 
-            subscriptionWorker.port.onmessage = ({ data }) => {
+            const messageHandler = ({
+                data,
+            }: WindowStateEvent | WindowSubscriptionEvent) => {
                 switch (data.type) {
                     case 'ping':
-                        return subscriptionWorker.port.postMessage(data);
-                    case 'error':
-                        return source$.error(data.error);
+                        return this.worker.port.postMessage(data);
+                    /*case 'error':
+                        return source$.error(data.error);*/
                     case 'mqtt-payload':
                         return source$.next(data);
                 }
             };
 
-            subscriptionWorker.port.postMessage({
+            this.worker.port.addEventListener('message', messageHandler);
+
+            this.worker.port.postMessage({
                 type: 'subscribe',
                 connection: this.name,
                 topic,
@@ -111,12 +110,15 @@ export class MqttConnection {
 
             return () => {
                 subscription.unsubscribe();
-                subscriptionWorker.port.postMessage({
+                this.worker.port.postMessage({
                     type: 'unsubscribe',
                     connection: this.name,
                     topic,
                 });
-                subscriptionWorker.port.close();
+                this.worker.removeEventListener(
+                    'message',
+                    messageHandler as any
+                );
             };
         }).pipe(
             retain ? publishReplay(1) : publish(),
@@ -129,7 +131,7 @@ export class MqttConnection {
         message: string | Uint8Array,
         options?: IClientPublishOptions
     ): void {
-        this.connectionWorker.port.postMessage({
+        this.worker.port.postMessage({
             type: 'publish',
             connection: this.name,
             topic,
@@ -139,10 +141,10 @@ export class MqttConnection {
     }
 
     close() {
-        this.connectionWorker.port.postMessage({
+        this.worker.port.postMessage({
             type: 'close',
             connection: this.name,
         });
-        this.connectionWorker.port.close();
+        this.worker.port.close();
     }
 }
