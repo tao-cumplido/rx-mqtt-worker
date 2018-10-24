@@ -63,6 +63,8 @@ export class MqttConnection {
             }
         });
 
+        this.worker.port.start();
+
         this.worker.port.postMessage({
             type: 'connect',
             name,
